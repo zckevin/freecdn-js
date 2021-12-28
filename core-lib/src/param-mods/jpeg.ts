@@ -1,33 +1,53 @@
+type ResolveFunc = (decoded: Uint8Array) => any;
+type TaskPromise = { resolve: ResolveFunc, reject: any };
+type JpegDecoderTaskConfig = {
+  length: number,
+  usedBits: {
+    from: number,
+    to: number,
+  },
+}
+type WaitingTask = {
+  name: string,
+  taskId: string,
+  file: Uint8Array,
+  config: JpegDecoderTaskConfig,
+}
+
 class ParamJpeg extends ParamBase {
 
+  /**
+   * conf format: jpeg=${length}_${usedBits.from}_${usedBits.to}
+   * @param conf 
+   * @returns 
+   */
   public static parseConf(conf: string) {
-    const config = parseJson(conf)
-    if (typeof config !== 'object') {
-      return 'ParamJpeg: invalid config format'
-    }
-    const { usedBits, length } = config
-    if (!usedBits || !length) {
-      return 'ParamJpeg: usedBits & length are required'
-    }
-    if (typeof length !== 'number' || length < 0) {
-      return 'ParamJpeg: length must be a positive number'
-    }
-    const args = usedBits.split("-");
-    if (args.length !== 2) {
-      return 'ParamJpeg: invalid usedBits format'
+    const args = conf.split("_");
+    if (args.length !== 3) {
+      return 'ParamJpeg: invalid conf format'
     }
     return [
-      length,
-      { from: parseInt(args[0]), to: parseInt(args[1])}
-    ] 
+      parseInt(args[0]),
+      { from: parseInt(args[1]), to: parseInt(args[2])}
+    ]
   }
 
   private readonly queueArr: Uint8Array[] = []
   private queueLen = 0
 
   private port: any = null;
-  private firedTasks: Map<string, any> = new Map();
-  private cachedTasks: Array<any> = [];
+  private firedTasks: Map<string, TaskPromise> = new Map();
+  private cachedTasks: Array<WaitingTask> = [];
+
+  private takeTaskPromise(taskId: string): TaskPromise | null {
+    const task = this.firedTasks.get(taskId);
+    if (task) {
+      this.firedTasks.delete(taskId);
+      return task;
+    } else {
+      return null;
+    }
+  }
 
   public constructor(private readonly length: any, private readonly usedBits: any) {
     super()
@@ -46,9 +66,12 @@ class ParamJpeg extends ParamBase {
           return;
         }
         console.log(`jpegDecoded task finishes: ${taskId}`);
-        const resolveFunc = this.firedTasks.get(taskId).resolve;
-        this.firedTasks.delete(taskId);
-        resolveFunc(decoded);
+        const task = this.takeTaskPromise(taskId);
+        // requests may already resolved by other urls
+        if (!task) {
+          return;
+        }
+        task.resolve(decoded);
       }
 
       if (this.cachedTasks.length > 0) {
