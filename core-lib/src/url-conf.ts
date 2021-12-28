@@ -15,6 +15,7 @@ class UrlConf {
       'charset': ParamCharset,
 
       'pos': ParamPos,
+      'jpeg': ParamJpeg,
       'size': ParamSize,
       'xor': ParamXor,
       'br': ParamBr,

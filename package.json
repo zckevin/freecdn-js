@@ -36,5 +36,8 @@
     "test": "mocha",
     "test-core": "cd core-lib/test && node server",
     "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "weibo-jpeg-channel": "file:.yalc/weibo-jpeg-channel"
   }
 }

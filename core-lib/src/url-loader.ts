@@ -19,7 +19,7 @@ class UrlLoader {
   }
 
   public async request(fileLoader: FileLoader) {
-    let err
+    let err: any;
     try {
       err = await this.requestUnsafe(fileLoader)
     } catch (e) {

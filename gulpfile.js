@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const zlib = require('zlib')
 const fs = require('fs')
+const path = require('path')
 
 const gulp = require('gulp')
 const ts = require('gulp-typescript')
@@ -23,13 +24,37 @@ function getFileHash(file) {
   return buf.toString('base64')
 }
 
+function getJpegDecoderScriptContent() {
+  const jpegDecoderPath = require.resolve("weibo-jpeg-channel")
+  const jpegDecoderContent = fs.readFileSync(jpegDecoderPath, 'utf8')
+  
+  const jpegDecoderInitScriptPath =
+      path.resolve(__dirname, "./core-lib/src/param-mods/init-jpeg.js")
+  const initScriptContent = fs.readFileSync(jpegDecoderInitScriptPath, 'utf8')
+
+  return `console.log("Entering jpeg decoder script");
+    ${jpegDecoderContent}
+    ${initScriptContent}`
+}
+
 //
 // main-js
 //
 gulp.task('compile-main-js', () => {
   const opt = require('./main-js/tsconfig.json').compilerOptions
+
+  let script = getJpegDecoderScriptContent();
+  // Escape special characters in script
+  // 1. handle \n
+  script = script.replaceAll("\\", "\\\\"); 
+  // 2. handler string interpolation
+  script = script.replaceAll("`", "\\`");
+  script = script.replaceAll("$", "\\$");
+
+  // inject script for sw.ts
   return gulp
     .src(MAIN_JS_SRC)
+    .pipe(replace(/JPEG_DECODER_SCRIPT_PLACEHOLDER/, `${script}`))
     .pipe(sourcemaps.init())
     .pipe(ts(opt))
     .pipe(sourcemaps.write('.'))
