@@ -14,6 +14,10 @@ type WaitingTask = {
   config: JpegDecoderTaskConfig,
 }
 
+self.addEventListener("message", (msg) => {
+  ParamJpeg.onMessageHandler(msg);
+});
+
 class ParamJpeg extends ParamBase {
 
   /**
@@ -35,52 +39,51 @@ class ParamJpeg extends ParamBase {
   private readonly queueArr: Uint8Array[] = []
   private queueLen = 0
 
-  private port: any = null;
-  private firedTasks: Map<string, TaskPromise> = new Map();
-  private cachedTasks: Array<WaitingTask> = [];
+  private static port: any = null;
+  private static firedTasks: Map<string, TaskPromise> = new Map();
+  private static cachedTasks: Array<WaitingTask> = [];
 
-  private takeTaskPromise(taskId: string): TaskPromise | null {
-    const task = this.firedTasks.get(taskId);
+  private static takeTaskPromise(taskId: string): TaskPromise | null {
+    const task = ParamJpeg.firedTasks.get(taskId);
     if (task) {
-      this.firedTasks.delete(taskId);
+      ParamJpeg.firedTasks.delete(taskId);
       return task;
     } else {
       return null;
     }
   }
 
-  public constructor(private readonly length: any, private readonly usedBits: any) {
-    super()
-
-    self.addEventListener("message", (msg) => {
-      console.log("sw recv:", msg);
-      const { name } = msg.data;
-      if (name !== "hostReady") {
+  public static onMessageHandler(msg: any) {
+    console.log("sw recv:", msg);
+    const { name } = msg.data;
+    if (name !== "hostReady") {
+      return;
+    }
+    ParamJpeg.port = msg.ports[0];
+    ParamJpeg.port.onmessage = (msg: any) => {
+      const { name, decoded, taskId } = msg.data;
+      if (name !== "jpegDecoder" || !taskId) {
         return;
       }
-
-      this.port = msg.ports[0];
-      this.port.onmessage = (msg: any) => {
-        const { name, decoded, taskId } = msg.data;
-        if (name !== "jpegDecoder" || !taskId) {
-          return;
-        }
-        console.log(`jpegDecoded task finishes: ${taskId}`);
-        const task = this.takeTaskPromise(taskId);
-        // requests may already resolved by other urls
-        if (!task) {
-          return;
-        }
-        task.resolve(decoded);
+      console.log(`jpegDecoded task finishes: ${taskId}`);
+      const task = ParamJpeg.takeTaskPromise(taskId);
+      // requests may already resolved by other urls
+      if (!task) {
+        return;
       }
+      task.resolve(decoded);
+    }
 
-      if (this.cachedTasks.length > 0) {
-        this.cachedTasks.forEach(task => {
-          this.port.postMessage(task, [task.file.buffer]);
-        });
-        this.cachedTasks = [];
-      }
-    });
+    if (ParamJpeg.cachedTasks.length > 0) {
+      ParamJpeg.cachedTasks.forEach(task => {
+        ParamJpeg.port.postMessage(task, [task.file.buffer]);
+      });
+      ParamJpeg.cachedTasks = [];
+    }
+  }
+
+  public constructor(private readonly length: any, private readonly usedBits: any) {
+    super()
   }
 
   public onData(chunk: Uint8Array) {
@@ -92,15 +95,15 @@ class ParamJpeg extends ParamBase {
     return EMPTY_BUF
   }
 
-  private async requestJpegDecoderInHost(taskId: string, file: Uint8Array, config: any) {
+  private async requestJpegDecoderInHost(taskId: string, file: Uint8Array, config: JpegDecoderTaskConfig) {
     const task = { name: "jpegDecoder", file, config, taskId };
-    if (this.port) {
-      this.port.postMessage(task, [file.buffer]);
+    if (ParamJpeg.port) {
+      ParamJpeg.port.postMessage(task, [file.buffer]);
     } else {
-      this.cachedTasks.push(task);
+      ParamJpeg.cachedTasks.push(task);
     }
     const promise: Promise<Uint8Array> = new Promise((resolve, reject) => {
-      this.firedTasks.set(taskId, {
+      ParamJpeg.firedTasks.set(taskId, {
         resolve,
         reject,
       })

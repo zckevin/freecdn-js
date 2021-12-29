@@ -25,36 +25,36 @@ function getFileHash(file) {
 }
 
 function getJpegDecoderScriptContent() {
-  const jpegDecoderPath = require.resolve("weibo-jpeg-channel")
+  const jpegDecoderPath = require.resolve("@zckevin/jpeg-channel-browser-decoder")
   const jpegDecoderContent = fs.readFileSync(jpegDecoderPath, 'utf8')
   
   const jpegDecoderInitScriptPath =
       path.resolve(__dirname, "./core-lib/src/param-mods/init-jpeg.js")
   const initScriptContent = fs.readFileSync(jpegDecoderInitScriptPath, 'utf8')
 
-  return `console.log("Entering jpeg decoder script");
+  let script =  `console.log("Entering jpeg decoder script");
     ${jpegDecoderContent}
     ${initScriptContent}`
-}
 
-//
-// main-js
-//
-gulp.task('compile-main-js', () => {
-  const opt = require('./main-js/tsconfig.json').compilerOptions
-
-  let script = getJpegDecoderScriptContent();
   // Escape special characters in script
   // 1. handle \n
   script = script.replaceAll("\\", "\\\\"); 
   // 2. handler string interpolation
   script = script.replaceAll("`", "\\`");
   script = script.replaceAll("$", "\\$");
+  return script;
+}
 
+const jpegDecoderScript = getJpegDecoderScriptContent();
+
+//
+// main-js
+//
+gulp.task('compile-main-js', () => {
+  const opt = require('./main-js/tsconfig.json').compilerOptions
   // inject script for sw.ts
   return gulp
     .src(MAIN_JS_SRC)
-    .pipe(replace(/JPEG_DECODER_SCRIPT_PLACEHOLDER/, `${script}`))
     .pipe(sourcemaps.init())
     .pipe(ts(opt))
     .pipe(sourcemaps.write('.'))
@@ -134,6 +134,7 @@ gulp.task('compile-loader-js', () => {
   const opt = require('./loader-js/tsconfig.json').compilerOptions
   return gulp
     .src(LOADER_JS_SRC)
+    .pipe(replace(/JPEG_DECODER_SCRIPT_PLACEHOLDER/, jpegDecoderScript))
     .pipe(ts(opt))
     .pipe(replace(/'PUBLIC_KEY_PLACEHOLDER'|'[A-Za-z0-9/+]{86}'/, `'${key}'`))
     .pipe(gulp.dest('dist'))

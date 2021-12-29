@@ -6,14 +6,7 @@
 namespace Sw {
   const GLOBAL: ServiceWorkerGlobalScope = self as any
 
-  // This response is the resp of freecdn-loader.min.js
-  // after sw is registered and reload the page,
-  // sent from service worker to main window,
-  // 
-  // Use this script to inject jpeg-decoder script to main window,
-  // and after this script, main window post a ready message to sw,
-  // then it's garenteed that jpeg-decoder is loaded.
-  const mPageJsRes = new Response(`JPEG_DECODER_SCRIPT_PLACEHOLDER`, {
+  const mPageJsRes = new Response("// sw is now registered", {
     headers: {
       'content-type': 'text/javascript',
       'cache-control': 'max-age=3600',
