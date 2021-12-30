@@ -10,6 +10,7 @@ const terser = require('gulp-terser')
 const replace = require('gulp-replace')
 const sourcemaps = require('gulp-sourcemaps')
 const VER = require('./package.json').version
+const { getJpegDecoderConfig } = require("./load-jpeg.js")
 
 const MAIN_JS_SRC = ['main-js/src/**/*.ts', 'core-lib/src/**/*.ts']
 const LOADER_JS_SRC = ['loader-js/src/**/*.ts']
@@ -17,35 +18,13 @@ const FAIL_JS_SRC = ['fail-js/src/**/*.ts']
 
 const DEV_ASSETS = 'core-lib/dist/freecdn-internal/dev'
 
+const jpegDecoderConfig = getJpegDecoderConfig('wasm');
 
 function getFileHash(file) {
   const data = fs.readFileSync(file)
   const buf = crypto.createHash('sha256').update(data).digest()
   return buf.toString('base64')
 }
-
-function getJpegDecoderScriptContent() {
-  const jpegDecoderPath = require.resolve("@zckevin/jpeg-channel-browser-decoder")
-  const jpegDecoderContent = fs.readFileSync(jpegDecoderPath, 'utf8')
-  
-  const jpegDecoderInitScriptPath =
-      path.resolve(__dirname, "./core-lib/src/param-mods/init-jpeg.js")
-  const initScriptContent = fs.readFileSync(jpegDecoderInitScriptPath, 'utf8')
-
-  let script =  `console.log("Entering jpeg decoder script");
-    ${jpegDecoderContent}
-    ${initScriptContent}`
-
-  // Escape special characters in script
-  // 1. handle \n
-  script = script.replaceAll("\\", "\\\\"); 
-  // 2. handler string interpolation
-  script = script.replaceAll("`", "\\`");
-  script = script.replaceAll("$", "\\$");
-  return script;
-}
-
-const jpegDecoderScript = getJpegDecoderScriptContent();
 
 //
 // main-js
@@ -134,7 +113,8 @@ gulp.task('compile-loader-js', () => {
   const opt = require('./loader-js/tsconfig.json').compilerOptions
   return gulp
     .src(LOADER_JS_SRC)
-    .pipe(replace(/JPEG_DECODER_SCRIPT_PLACEHOLDER/, jpegDecoderScript))
+    .pipe(replace(/USE_JPEG_BROWSER_DECODER_PLACEHOLDER/, jpegDecoderConfig.useJpegBrowserDecoder))
+    .pipe(replace(/JPEG_BROWSER_DECODER_SCRIPT_PLACEHOLDER/, jpegDecoderConfig.browserDecoderScript))
     .pipe(ts(opt))
     .pipe(replace(/'PUBLIC_KEY_PLACEHOLDER'|'[A-Za-z0-9/+]{86}'/, `'${key}'`))
     .pipe(gulp.dest('dist'))

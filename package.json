@@ -38,6 +38,7 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
+    "nanojpeg-wasm": "^0.0.1",
     "weibo-jpeg-channel": "file:.yalc/weibo-jpeg-channel"
   }
 }

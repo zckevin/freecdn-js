@@ -54,7 +54,7 @@
       handleSwTask(msg, port1);
     };
     navigator.serviceWorker.controller.postMessage({
-      name: "hostReady",
+      name: "windowClientReady",
     }, [port2]);
   });
 })();
