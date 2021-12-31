@@ -1,5 +1,7 @@
 const fs = require('fs')
+const path = require("path")
 const crypto = require('crypto')
+const PACKAGE_NAME = require("./package.json").name;
 
 function getFileHash(file) {
   const data = fs.readFileSync(file)
@@ -8,8 +10,13 @@ function getFileHash(file) {
 }
 
 function fillVersionAndHash(config) {
-  config.ver = require(require.resolve(`${config.package}/package.json`)).version 
-  config.hash = getFileHash(require.resolve(`${config.package}${config.filePath}`))
+  if (config.package === PACKAGE_NAME) {
+    config.ver = require("./package.json").version 
+    config.hash = getFileHash(path.join(__dirname, config.filePath))
+  } else {
+    config.ver = require(require.resolve(`${config.package}/package.json`)).version 
+    config.hash = getFileHash(require.resolve(`${config.package}${config.filePath}`))
+  }
 }
 
 function getCDNUrls(config) {
@@ -32,50 +39,64 @@ function getCDNUrls(config) {
   })
 }
 
-function getWasmDecoderManifest() {
-  const config = {
-    wasm: {
-      package: "nanojpeg-wasm",
-      filePath: "/nanojpeg.wasm",
-      ver: "",
-      hash: "",
-    },
-    js: {
-      package: "@zckevin/jpeg-channel-wasm",
-      filePath: "/dist/jpeg-decoder.min.js",
-      ver: "",
-      hash: "",
-    }
-  }
-
+function getManifestByConfig(config) {
   fillVersionAndHash(config.wasm)
   fillVersionAndHash(config.js)
 
   const manifest = `
 ${config.wasm.filePath}
-  ${getCDNUrls(config.wasm).join("\n")}
+${getCDNUrls(config.wasm).map(_ => `  ${_}`).join("\n")}
   hash=${config.wasm.hash}
   open_timeout=0
 
 ${config.js.filePath}
-  ${getCDNUrls(config.js).join("\n")}
+${getCDNUrls(config.js).map(_ => `  ${_}`).join("\n")}
   hash=${config.js.hash}
   open_timeout=0
 `
+  console.log(manifest)
   return manifest;
+}
+
+function getJpegWasmDecoderManifest() {
+  const config = {
+    wasm: {
+      package: "nanojpeg-wasm",
+      filePath: "/nanojpeg.wasm",
+    },
+    js: {
+      package: "@zckevin/jpeg-channel-wasm",
+      filePath: "/dist/jpeg-decoder.min.js",
+    }
+  }
+  return getManifestByConfig(config)
+}
+
+function getBrWasmDecoderManifest() {
+  const config = {
+    wasm: {
+      package: PACKAGE_NAME,
+      filePath: "/dist/br/br.wasm",
+    },
+    js: {
+      package: PACKAGE_NAME,
+      filePath: "/dist/br/br.min.js",
+    }
+  }
+  return getManifestByConfig(config)
 }
 
 function getFreeCdnMainUrls() {
   const config = {
-    package: "@zckevin/librecdn-js",
+    package: PACKAGE_NAME,
     filePath: "/dist/freecdn-main.min.js",
-    ver: require("./package.json").version,
-    hash: "",
   }
+  fillVersionAndHash(config)
   return getCDNUrls(config)
 }
 
 module.exports = {
   getFreeCdnMainUrls,
-  getWasmDecoderManifest,
+  getBrWasmDecoderManifest,
+  getJpegWasmDecoderManifest,
 }

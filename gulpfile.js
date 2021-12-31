@@ -19,7 +19,8 @@ const DEV_ASSETS = 'core-lib/dist/freecdn-internal/dev'
 
 const {
   getFreeCdnMainUrls,
-  getWasmDecoderManifest
+  getBrWasmDecoderManifest,
+  getJpegWasmDecoderManifest,
 } = require('./cdn.js')
 
 function getFileHash(file) {
@@ -36,7 +37,8 @@ gulp.task('compile-main-js', () => {
   // inject script for sw.ts
   return gulp
     .src(MAIN_JS_SRC)
-    .pipe(replace(/WASM_DECODER_MANIFEST/, getWasmDecoderManifest()))
+    .pipe(replace(/WASM_DECODER_MANIFEST_PLACEHOLDER/, getJpegWasmDecoderManifest()))
+    .pipe(replace(/BR_WASM_MANIFEST_PLACEHOLDER/, getBrWasmDecoderManifest()))
     .pipe(sourcemaps.init())
     .pipe(ts(opt))
     .pipe(sourcemaps.write('.'))

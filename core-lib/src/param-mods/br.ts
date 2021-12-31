@@ -22,20 +22,13 @@ class ParamBr extends ParamBase {
     }
     this.signal = promisex()
 
-    const BR_WASM_PATH = `${INTERNAL_PATH}/br/br.wasm`
-    const BR_GLUE_PATH = `${INTERNAL_PATH}/br/` + (IS_DEBUG ? 'br.js' : 'br.min.js')
-
-    const BR_MANIFEST = IS_DEBUG ? '' : `
-${BR_WASM_PATH}
-	https://cdn.jsdelivr.net/npm/freecdn-js@${VER}/dist/br/br.wasm
-	https://unpkg.com/freecdn-js@${VER}/dist/br/br.wasm
-	hash=${BR_WASM_HASH}
-
-${BR_GLUE_PATH}
-	https://cdn.jsdelivr.net/npm/freecdn-js@${VER}/dist/br/br.min.js
-	https://unpkg.com/freecdn-js@${VER}/dist/br/br.min.js
-	hash=${BR_GLUE_HASH}
-`
+    const BR_WASM_PATH =
+      IS_DEBUG ? `${INTERNAL_PATH}/br/br.wasm` :
+                 "/dist/br/br.wasm"
+    const BR_GLUE_PATH =
+      IS_DEBUG ? `${INTERNAL_PATH}/br/` + (IS_DEBUG ? 'br.js' : 'br.min.js') :
+                 "/dist/br/br.min.js"
+    const BR_MANIFEST = IS_DEBUG ? '' : `BR_WASM_MANIFEST_PLACEHOLDER`
     const onError = () => {
       this.hasErr = true
       this.signal?.resolve()

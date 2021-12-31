@@ -27,7 +27,7 @@ class ModuleLoader {
     }
     this.signal = promisex()
 
-    const JPEG_MANIFEST = `WASM_DECODER_MANIFEST`
+    const JPEG_MANIFEST = `WASM_DECODER_MANIFEST_PLACEHOLDER`
     const onError = () => {
       this.hasErr = true
       this.signal?.resolve()
