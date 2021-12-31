@@ -101,7 +101,7 @@ namespace Sw {
       const preloadScript = wrapPreload()
         .replace(
           "PRELOAD_PATHS_PLACEHOLDER",
-          JSON.stringify(mFreeCDN.manifest?.getPreloadPaths())
+          JSON.stringify(mFreeCDN.manifest?.getPreloadPaths() || [])
         )
       const mPageJsRes = new Response(preloadScript, {
         headers: {
