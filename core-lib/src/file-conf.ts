@@ -5,6 +5,7 @@ const REG_SUB_LINE = /^\s+([^#\s].+?)\s*$/mg
 class FileConf {
   public urlConfs: readonly UrlConf[]
   public params: params_t
+  private parsed = false
 
 
   public constructor(
@@ -23,12 +24,13 @@ class FileConf {
       }
       lines.push(m[1])
     }
-    this.text = ''
+    // this.text = ''
+    this.parsed = true
     return lines
   }
 
   public parse() {
-    if (this.text === '') {
+    if (this.text === '' || this.parsed) {
       return
     }
     const urlConfs: UrlConf[] = []
