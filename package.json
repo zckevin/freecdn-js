@@ -1,13 +1,8 @@
 {
-  "name": "freecdn-js",
+  "name": "@zckevin/librecdn-js",
   "version": "0.1.2",
-  "author": "EtherDream",
+  "author": "Cong Zuo",
   "license": "MIT",
-  "description": "browser-side files for freecdn",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/EtherDream/freecdn-js"
-  },
   "main": "index.js",
   "files": [
     "dist"
@@ -39,7 +34,6 @@
   },
   "dependencies": {
     "@zckevin/jpeg-channel-wasm": "^0.0.1",
-    "nanojpeg-wasm": "^0.0.2",
-    "weibo-jpeg-channel": "file:.yalc/weibo-jpeg-channel"
+    "nanojpeg-wasm": "^0.0.2"
   }
 }
