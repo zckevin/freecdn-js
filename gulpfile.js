@@ -20,7 +20,7 @@ const DEV_ASSETS = 'core-lib/dist/freecdn-internal/dev'
 const {
   getFreeCdnMainUrls,
   getWasmDecoderManifest
-} = require('./import-jpeg-decoder.js')
+} = require('./cdn.js')
 
 function getFileHash(file) {
   const data = fs.readFileSync(file)
