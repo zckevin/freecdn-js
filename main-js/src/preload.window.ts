@@ -35,9 +35,8 @@ function preloadScriptsOnWindowClient() {
 function wrapPreload() {
   const preloadScript = preloadScriptsOnWindowClient.toString()
   return `(function() {
-    ${preloadScript}
     window.addEventListener('DOMContentLoaded', (event) => {
-      preloadScriptsOnWindowClient();
+      (${preloadScript})();
     });
   })();`
 }
