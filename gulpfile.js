@@ -17,13 +17,16 @@ const FAIL_JS_SRC = ['fail-js/src/**/*.ts']
 
 const DEV_ASSETS = 'core-lib/dist/freecdn-internal/dev'
 
+const {
+  getFreeCdnMainUrls,
+  getWasmDecoderManifest
+} = require('./import-jpeg-decoder.js')
+
 function getFileHash(file) {
   const data = fs.readFileSync(file)
   const buf = crypto.createHash('sha256').update(data).digest()
   return buf.toString('base64')
 }
-
-const { getWasmDecoderManifest } = require('./import-jpeg-decoder.js')
 
 //
 // main-js
@@ -114,6 +117,7 @@ gulp.task('compile-loader-js', () => {
   return gulp
     .src(LOADER_JS_SRC)
     .pipe(ts(opt))
+    .pipe(replace(/FREECDN_MAIN_URLS_PLACEHOLDER/, JSON.stringify(getFreeCdnMainUrls())))
     .pipe(replace(/'PUBLIC_KEY_PLACEHOLDER'|'[A-Za-z0-9/+]{86}'/, `'${key}'`))
     .pipe(gulp.dest('dist'))
 })

@@ -90,10 +90,8 @@ declare let Q: any[]
     try {
       globalEval('')
 
-      const URL_CDNS = [
-        `https://cdn.jsdelivr.net/npm/freecdn-js@${VER}/dist/freecdn-main.min.js`,
-        `https://unpkg.com/freecdn-js@${VER}/dist/freecdn-main.min.js`,
-      ]
+      // @ts-ignore
+      const URL_CDNS = FREECDN_MAIN_URLS_PLACEHOLDER
       // trade bandwidth for time
       URL_CDNS.map(loadMainJs)
 

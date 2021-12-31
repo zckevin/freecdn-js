@@ -29,7 +29,7 @@ function getCDNUrls(config) {
       s += `${filePath}`
     }
     return s
-  }).join("\n")
+  })
 }
 
 function getWasmDecoderManifest() {
@@ -53,18 +53,29 @@ function getWasmDecoderManifest() {
 
   const manifest = `
 ${config.wasm.filePath}
-  ${getCDNUrls(config.wasm)}
+  ${getCDNUrls(config.wasm).join("\n")}
   hash=${config.wasm.hash}
   open_timeout=0
 
 ${config.js.filePath}
-  ${getCDNUrls(config.js)}
+  ${getCDNUrls(config.js).join("\n")}
   hash=${config.js.hash}
   open_timeout=0
 `
   return manifest;
 }
 
+function getFreeCdnMainUrls() {
+  const config = {
+    package: "@zckevin/librecdn-js",
+    filePath: "/dist/freecdn-main.min.js",
+    ver: require("./package.json").version,
+    hash: "",
+  }
+  return getCDNUrls(config)
+}
+
 module.exports = {
+  getFreeCdnMainUrls,
   getWasmDecoderManifest,
 }
