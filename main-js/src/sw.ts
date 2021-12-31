@@ -6,7 +6,7 @@
 namespace Sw {
   const GLOBAL: ServiceWorkerGlobalScope = self as any
 
-  const mPageJsRes = new Response("// sw is now registered", {
+  const mPageJsRes = new Response('/* freecdn is installed */', {
     headers: {
       'content-type': 'text/javascript',
       'cache-control': 'max-age=3600',

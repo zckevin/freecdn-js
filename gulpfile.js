@@ -10,7 +10,6 @@ const terser = require('gulp-terser')
 const replace = require('gulp-replace')
 const sourcemaps = require('gulp-sourcemaps')
 const VER = require('./package.json').version
-const { getJpegDecoderConfig } = require("./load-jpeg.js")
 
 const MAIN_JS_SRC = ['main-js/src/**/*.ts', 'core-lib/src/**/*.ts']
 const LOADER_JS_SRC = ['loader-js/src/**/*.ts']
@@ -18,13 +17,13 @@ const FAIL_JS_SRC = ['fail-js/src/**/*.ts']
 
 const DEV_ASSETS = 'core-lib/dist/freecdn-internal/dev'
 
-const jpegDecoderConfig = getJpegDecoderConfig('wasm');
-
 function getFileHash(file) {
   const data = fs.readFileSync(file)
   const buf = crypto.createHash('sha256').update(data).digest()
   return buf.toString('base64')
 }
+
+const { getWasmDecoderManifest } = require('./import-jpeg-decoder.js')
 
 //
 // main-js
@@ -34,6 +33,7 @@ gulp.task('compile-main-js', () => {
   // inject script for sw.ts
   return gulp
     .src(MAIN_JS_SRC)
+    .pipe(replace(/WASM_DECODER_MANIFEST/, getWasmDecoderManifest()))
     .pipe(sourcemaps.init())
     .pipe(ts(opt))
     .pipe(sourcemaps.write('.'))
@@ -113,8 +113,6 @@ gulp.task('compile-loader-js', () => {
   const opt = require('./loader-js/tsconfig.json').compilerOptions
   return gulp
     .src(LOADER_JS_SRC)
-    .pipe(replace(/USE_JPEG_BROWSER_DECODER_PLACEHOLDER/, jpegDecoderConfig.useJpegBrowserDecoder))
-    .pipe(replace(/JPEG_BROWSER_DECODER_SCRIPT_PLACEHOLDER/, jpegDecoderConfig.browserDecoderScript))
     .pipe(ts(opt))
     .pipe(replace(/'PUBLIC_KEY_PLACEHOLDER'|'[A-Za-z0-9/+]{86}'/, `'${key}'`))
     .pipe(gulp.dest('dist'))

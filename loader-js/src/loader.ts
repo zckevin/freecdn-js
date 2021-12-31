@@ -69,43 +69,9 @@ declare let Q: any[]
   } else {
     Q = ['PUBLIC_KEY_PLACEHOLDER']
 
-    let first_fetch: boolean = true
     // event handlers must be added during
     // the worker script's initial evaluation
     onfetch = (e) => {
-      // @ts-ignore
-      if ("USE_JPEG_BROWSER_DECODER_PLACEHOLDER" == "true") {
-        // Hack here to return the fetch result of index.html,
-        // because sw needs host window to decode jpeg for the resource manifest,
-        // so we want host window to be ready and post message to sw ASAP.
-        //
-        // If we don't add the hack here, host window would block waiting for sw to init
-        // and send back the fetched result,
-        // sw is block waiting host window to decode the jpeg,
-        // it's a deadlock.
-        if (first_fetch) {
-          console.log("First url fetch on page, should be the index html:", e.request.url);
-          first_fetch = false
-          return e.respondWith(fetch(e.request))
-        }
-
-        // This response is the resp of freecdn-loader.min.js
-        // after sw is registered and reload the page,
-        // sent from service worker to main window,
-        // 
-        // Use this script to inject jpeg-decoder script to main window,
-        // and after this script, main window post a ready message to sw,
-        // then it's garenteed that jpeg-decoder is loaded.
-        if (e.request.url.includes('freecdn-loader.min.js')) {
-          const resp = new Response(`JPEG_BROWSER_DECODER_SCRIPT_PLACEHOLDER`, {
-            headers: {
-              'content-type': 'text/javascript',
-              'cache-control': 'max-age=3600',
-            },
-          });
-          return e.respondWith(resp);
-        }
-      }
       e.respondWith(
         new Promise((resolve, reject) => {
           Q.push(e, resolve, reject)
