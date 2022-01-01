@@ -16,8 +16,9 @@ function preloadScriptsOnWindowClient() {
     link.href = src;
     link.rel = "stylesheet"
     link.media = "print"
-    // @ts-ignore
-    link.onload = "this.media='all'"
+    link.onload = () => {
+      link.media = "all"
+    }
     document.head.appendChild(link);
   }
 
