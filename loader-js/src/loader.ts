@@ -15,6 +15,7 @@ declare let Q: any[]
   const IS_DEBUG = typeof RELEASE === 'undefined'
   const globalEval = eval
   let flag: number
+  const abortCtrl = new AbortController()
 
 
   function loadFailJs(err?: Error) {
@@ -36,11 +37,12 @@ declare let Q: any[]
     if (flag) {
       return
     }
-    fetch(url, {integrity: MAIN_JS_HASH}).then(res => {
+    fetch(url, {integrity: MAIN_JS_HASH, signal: abortCtrl.signal}).then(res => {
       return res.text().then(txt => {
         if (flag) {
           return
         }
+        abortCtrl.abort()
         flag = 1
         globalEval(txt)
       })
