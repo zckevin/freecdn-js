@@ -111,7 +111,10 @@ class ParamBr extends ParamBase {
     return this.process(chunk)
   }
 
-  public onEnd(chunk: Uint8Array) {
+  public async onEnd(chunk: Uint8Array) {
+    if (ParamBr.signal) {
+      await ParamBr.signal
+    }
     // ???
     let buf = EMPTY_BUF
     if (chunk.length > 0) {
