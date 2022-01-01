@@ -19,7 +19,6 @@ class UrlConf {
       'size': ParamSize,
       'xor': ParamXor,
       'br': ParamBr,
-      'preload': ParamPreload,
 
       'prefix': ParamPrefix,
       'suffix': ParamSuffix,

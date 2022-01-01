@@ -66,17 +66,4 @@ class Manifest {
 
     this.globalParams = m1 ? new Map([...m0, ...m1]) : m0
   }
-
-  public getPreloadPaths() {
-    const preloadPaths: string[] = []
-    this.urlFileMap.forEach((fileConf, path) => {
-      if (!path.startsWith('/')) {
-        return;
-      }
-      if (fileConf.params.has('preload')) {
-        preloadPaths.push(path)
-      }
-    });
-    return preloadPaths
-  }
 }

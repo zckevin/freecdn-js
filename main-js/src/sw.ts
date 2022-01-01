@@ -6,6 +6,13 @@
 namespace Sw {
   const GLOBAL: ServiceWorkerGlobalScope = self as any
 
+  const mPageJsRes = new Response('/* freecdn is installed */', {
+    headers: {
+      'content-type': 'text/javascript',
+      'cache-control': 'max-age=3600',
+    },
+  })
+
   let mFreeCDN: FreeCDN
 
   let mIniting: PromiseX | null
@@ -96,19 +103,6 @@ namespace Sw {
     }
 
     if (req.url === location.href) {
-      // inject preload scripts on window client using the response of `freecdn-loader.min.js`
-      // after sw is registered.
-      const preloadScript = wrapPreload()
-        .replace(
-          "PRELOAD_PATHS_PLACEHOLDER",
-          JSON.stringify(mFreeCDN.manifest?.getPreloadPaths() || [])
-        )
-      const mPageJsRes = new Response(preloadScript, {
-        headers: {
-          'content-type': 'text/javascript',
-          'cache-control': 'max-age=3600',
-        },
-      })
       resolve(mPageJsRes.clone())
       return
     }

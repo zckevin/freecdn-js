@@ -12,7 +12,6 @@ class FileConf {
     public readonly name: string,
     private text: string
   ) {
-    this.parse()
   }
 
   public getLines() {
